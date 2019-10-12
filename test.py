@@ -41,9 +41,20 @@ def print_raw (root):
     for raw_text_node in root.findall('raw_text'):
         print raw_text_node.text
 
-def print_station (root):
-    for station in metar.findall('station_id'):
-        print ("WEATHER INFORMATION FOR: {}".format(station.text))
+def print_station_condition (root):
+    station = ''
+    fly_condition = ''
+    message = ''
+    for station in root.findall('station_id'):
+        station = station.text
+    for category in root.findall('flight_category'):
+        flying_condition = category.text
+
+    message += 'Weather information for {}'.format(station)
+
+    if flying_condition != '':
+        message += " - Conditions indicate {} flight rules.".format(flying_condition)
+    print message
 
 def print_wind (root):
     wind_dir = None
@@ -54,7 +65,7 @@ def print_wind (root):
         wind_dir = int(wind_dir_node.text)
 
     for wind_speed_node in root.findall("wind_speed_kt"):
-        if wind_speed_node.text != 0:
+        if wind_speed_node.text != "0":
             wind_speed = wind_speed_node.text + " knots"
         else:
             wind_speed = int(wind_speed_node.text)
@@ -78,7 +89,6 @@ def print_wind (root):
                                                                        wind_speed,
                                                                        wind_gust))
     elif wind_dir  == 180:
-        print ('tHIS SHOULD HAPPEND FROME XAPME')
         print ("Winds are from due SOUTH @ {}{}".format(wind_speed, wind_gust))
     elif wind_dir  > 180 and wind_dir < 270:
         print ("Winds are coming from the SW bearing {} @ {}{}".format(wind_dir,
@@ -91,18 +101,16 @@ def print_wind (root):
                                                                        wind_speed,
                                                                        wind_gust))
 
-
 def parse_metar (tds_response):
-    #response = ET.fromstring(tds_response)
-    response_root = ET.parse(tds_response).getroot()
-
-    print response_root.tag # PRINT RESPONSE FOR SANITY
+    response_root = ET.fromstring(tds_response)
+    #response_root = ET.parse(tds_response).getroot()
 
     for metar in response_root.iter('METAR'):
         print_raw(metar)
         print "================================================"
         print "||Attemtping to make this easier for you dude!||"
         print "================================================"
+        print_station_condition(metar)
         print_wind(metar)
     """
     for child in xml_tree.iter('*'):
@@ -114,9 +122,10 @@ single_list = ["KRNT"]
 multi_list = ["KRNT","KBFI"]
 
 #thing = get_print_metar(single_list, hours=1)
-#thing = get_metar(single_list, hours=1)
-#parse_metar(thing)
-parse_metar("examplesingle.xml")
+thing = get_metar(single_list, hours=1)
+print thing
+parse_metar(thing)
+#parse_metar("examplesingle.xml")
 
 
 #print ("Testing: multi station {}".format(get_metar(multi_list, hours=1)))
